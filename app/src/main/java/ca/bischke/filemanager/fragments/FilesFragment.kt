@@ -1,6 +1,7 @@
 package ca.bischke.filemanager.fragments
 
 import android.os.Bundle
+import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -28,8 +29,15 @@ class FilesFragment : Fragment() {
             adapter = FileAdapter(files)
         }
 
-        files.add(File("Test"))
-        files.add(File("Test2"))
-        files.add(File("Test3"))
+        getFiles(Environment.getExternalStorageDirectory().absolutePath)
+    }
+
+    private fun getFiles(path: String) {
+        Thread {
+            val files = File(path).listFiles()
+            for (file in files) {
+                this.files.add(file)
+            }
+        }.start()
     }
 }
