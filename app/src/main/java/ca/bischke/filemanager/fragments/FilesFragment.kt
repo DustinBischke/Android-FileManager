@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import ca.bischke.filemanager.R
 import ca.bischke.filemanager.adapters.FileAdapter
@@ -13,7 +14,6 @@ import kotlinx.android.synthetic.main.fragment_files.*
 import java.io.File
 
 class FilesFragment : Fragment() {
-    private val files: ArrayList<File> = ArrayList()
     private lateinit var mView: View
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -26,17 +26,29 @@ class FilesFragment : Fragment() {
 
         recyclerview_files.apply {
             layoutManager = LinearLayoutManager(activity)
-            adapter = FileAdapter(files)
+            addItemDecoration(DividerItemDecoration(activity, DividerItemDecoration.VERTICAL))
         }
 
-        getFiles(Environment.getExternalStorageDirectory().absolutePath)
+        mView.apply {
+            layout_swipe_refresh.setOnRefreshListener {
+                // TODO Create Refresh function
+                layout_swipe_refresh.isRefreshing = false
+            }
+        }
+
+        getFiles(Environment.getExternalStorageDirectory().absolutePath + "/DCIM/Camera")
     }
 
     private fun getFiles(path: String) {
         Thread {
-            val files = File(path).listFiles()
-            for (file in files) {
-                this.files.add(file)
+            val files = File(path).listFiles()?.filterNotNull()
+
+            mView.apply {
+                activity?.runOnUiThread {
+                    recyclerview_files.apply {
+                        adapter = files?.let { FileAdapter(it) }
+                    }
+                }
             }
         }.start()
     }
